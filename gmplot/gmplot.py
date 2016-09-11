@@ -170,7 +170,7 @@ class GoogleMapPlotter(object):
 
     # create the html file which include one google map and all points and
     # paths
-    def draw(self, htmlfile):
+    def draw(self, htmlfile, api_key=None):
         f = open(htmlfile, 'w')
         f.write('<html>\n')
         f.write('<head>\n')
@@ -179,7 +179,10 @@ class GoogleMapPlotter(object):
         f.write(
             '<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>\n')
         f.write('<title>Google Maps - pygmaps </title>\n')
-        f.write('<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=visualization&sensor=true_or_false"></script>\n')
+        url = 'https://maps.googleapis.com/maps/api/js?libraries=visualization&sensor=true_or_false'
+        if api_key is not None:
+            url += '&key=%s' % api_key
+        f.write('<script type="text/javascript" src="%s"></script>\n' % url)
         f.write('<script type="text/javascript">\n')
         f.write('\tfunction initialize() {\n')
         self.write_map(f)
