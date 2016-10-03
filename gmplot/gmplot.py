@@ -170,7 +170,7 @@ class GoogleMapPlotter(object):
 
     # create the html file which include one google map and all points and
     # paths
-    def draw(self, htmlfile, api_key=None):
+    def draw(self, htmlfile, api_key=None, premap_html=None, postmap_html=None, add_streetview=False):
         f = open(htmlfile, 'w')
         f.write('<html>\n')
         f.write('<head>\n')
@@ -186,6 +186,8 @@ class GoogleMapPlotter(object):
         f.write('<script type="text/javascript">\n')
         f.write('\tfunction initialize() {\n')
         self.write_map(f)
+        if add_streetview:
+            self.write_streetview(f)
         self.write_grids(f)
         self.write_points(f)
         self.write_paths(f)
@@ -196,8 +198,16 @@ class GoogleMapPlotter(object):
         f.write('</head>\n')
         f.write(
             '<body style="margin:0px; padding:0px;" onload="initialize()">\n')
+        if premap_html is not None:
+            f.write(premap_html)
+        map_width = '100%' if not add_streetview else '50%'
         f.write(
-            '\t<div id="map_canvas" style="width: 100%; height: 100%;"></div>\n')
+            '\t<div id="map_canvas" style="width: %s; height: 100%%; float:left;"></div>\n' % map_width)
+        if add_streetview:
+            f.write(
+                '\t<div id="streetview_canvas" style="width: 50%; height: 100%; float:right;"></div>\n')
+        if postmap_html is not None:
+            f.write(postmap_html)
         f.write('</body>\n')
         f.write('</html>\n')
         f.close()
@@ -276,6 +286,17 @@ class GoogleMapPlotter(object):
         f.write(
             '\t\tvar map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);\n')
         f.write('\n')
+
+    def write_streetview(self, f):
+        template = '''
+                var panorama = new google.maps.StreetViewPanorama(
+                document.getElementById('streetview_canvas'), {
+                position: new google.maps.LatLng(%f, %f),
+                visible: true,
+                addressControl: false,
+                });
+                map.setStreetView(panorama);\n'''
+        f.write(template % (self.center[0], self.center[1]))
 
     def write_point(self, f, lat, lon, color, title):
         f.write('\t\tvar latlng = new google.maps.LatLng(%f, %f);\n' %
